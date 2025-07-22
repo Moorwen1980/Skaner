@@ -90,6 +90,9 @@
     }
 
     function sendAll() {
+        if (!confirm("Czy na pewno chcesz wysłać dane do arkusza?")) {
+    return;
+  }
       const trasa = document.getElementById("trasa").value.trim();
       const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
       const dostawa = document.getElementById("dostawa").value.trim();
