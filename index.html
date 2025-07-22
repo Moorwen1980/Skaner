@@ -34,10 +34,10 @@
 </head>
 <body>
 
-  <h2>Skaner PZ Orlean</h2>
+  <h2 style="text-align: center;">Skaner PZ Orlean</h2>
 
-  <input id="trasa" type="text" placeholder="Nr trasy" required>
-  <input id="nrRejestracyjny" type="text" placeholder="Nr rejestracyjny" required>
+  <input id="trasa" type="text" placeholder="Wpisz nr trasy" required>
+  <input id="nrRejestracyjny" type="text" placeholder="Nr rejestracyjny samochodu i naczepy" required>
 
   <select id="dostawa" required>
     <option value="">-- Rodzaj przyjęcia --</option>
@@ -53,10 +53,10 @@
   <input id="manualInput" type="text" placeholder="Dodaj kod ręcznie">
   <button onclick="addManual()">Dodaj do listy</button>
 
-  <h3>Lista kodów:</h3>
+  <h3>Lista S/N:</h3>
   <ul id="codeList"></ul>
 
-  <button onclick="sendAll()">Wyślij wszystko do arkusza</button>
+  <button onclick="sendAll()">Wyślij PZ</button>
   <p id="status"></p>
 
   <script>
