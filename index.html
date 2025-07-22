@@ -25,7 +25,6 @@
       padding: 10px;
       width: 100%;
       font-size: 1rem;
-      box-sizing: border-box;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -71,7 +70,7 @@
     <option value="Rozładunek HDS">Rozładunek HDS</option>
   </select>
 
-  <input type="text" id="info" placeholder="Uwagi dotyczące dostawy"> <!-- nieobowiązkowe -->
+  <input type="text" id="info" placeholder="Uwagi dotyczące dostawy">
   <input type="text" id="moduly" placeholder="Podaj typ i ilość modułów" required>
 
   <div id="reader"></div>
@@ -86,7 +85,7 @@
   <p id="status"></p>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzlv0r7HQZtzsH1mPEnhDVMYmw3YdLFUuf2YGd_5KR1A0K3k08_fEk0TOo3lBnQ0EkeUg/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwKh-TwB9FokQXhSvB2CpTeCziY69Xrq1ntykQgtZtFeFos7XQaBeNhrt-ZaTjD12ZMAQ/exec';
 
     let codes = [];
 
@@ -118,7 +117,7 @@
       const trasa = document.getElementById("trasa").value.trim();
       const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
       const dostawa = document.getElementById("dostawa").value.trim();
-      const info = document.getElementById("info").value.trim(); // nieobowiązkowe
+      const info = document.getElementById("info").value.trim();
       const moduly = document.getElementById("moduly").value.trim();
 
       if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
@@ -130,21 +129,27 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trasa: trasa,
-          nrRejestracyjny: nrRejestracyjny,
-          dostawa: dostawa,
-          info: info,
-          moduly: moduly,
-          codes: codes
+          trasa,
+          nrRejestracyjny,
+          dostawa,
+          info,
+          moduly,
+          codes
         })
       })
-      .then(res => res.text())
+      .then(response => {
+        if (!response.ok) throw new Error("Błąd sieci");
+        return response.text();
+      })
       .then(txt => {
         document.getElementById("status").innerText = "✅ Wysłano dane do arkusza.";
         codes = [];
         updateList();
       })
-      .catch(err => alert("Błąd: " + err));
+      .catch(err => {
+        document.getElementById("status").innerText = "❌ Błąd przy wysyłaniu.";
+        alert("Błąd: " + err.message);
+      });
     }
 
     const qrScanner = new Html5Qrcode("reader");
