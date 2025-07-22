@@ -1,152 +1,32 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Lista kodów QR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100vw;
-      max-width: 100vw;
-      overflow-x: hidden;
-      font-family: sans-serif;
-      box-sizing: border-box;
-    }
+function sendAll() {
+  const trasa = document.getElementById("trasa").value.trim();
+  const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
+  const dostawa = document.getElementById("dostawa").value.trim();
+  const info = document.getElementById("info").value.trim();
+  const moduly = document.getElementById("moduly").value.trim();
 
-    body {
-      padding: 16px;
-    }
+  if (!trasa || !nrRejestracyjny || codes.length === 0) {
+    alert("Uzupełnij wymagane pola i dodaj przynajmniej jeden kod.");
+    return;
+  }
 
-    h2, h3 {
-      margin-top: 1em;
-    }
-
-    #reader {
-      width: 100%;
-      max-width: 100%;
-      margin: 20px 0;
-    }
-
-    input, button {
-      margin: 5px 0;
-      padding: 10px;
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      padding: 5px;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1rem;
-    }
-
-    .remove-btn {
-      color: red;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    #status {
-      margin-top: 10px;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
-</head>
-<body>
-  <h2>Dodaj numery seryjne (QR lub ręcznie)</h2>
-
-  <label for="trasa">Trasa:</label>
-  <input type="text" id="trasa" placeholder="Wpisz trasę">
-
-  <div id="reader"></div>
-
-  <input type="text" id="manualInput" placeholder="Wpisz ręcznie kod">
-  <button onclick="addManual()">Dodaj do listy</button>
-
-  <h3>Lista zeskanowanych:</h3>
-  <ul id="codeList"></ul>
-
-  <button onclick="sendAll()">Wyślij wszystkie do arkusza</button>
-  <p id="status"></p>
-
-  <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxV10DbnjikxYh4mI7pI5457iJp60_rngnY7tsKuI-pg5enUHmPFXDBStUUHEY7D_ExNw/exec'; // <-- Wstaw swój prawidłowy link do Google Apps Script
-
-    let codes = [];
-
-    function updateList() {
-      const list = document.getElementById("codeList");
-      list.innerHTML = "";
-      codes.forEach((code, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${index})">✕</span>`;
-        list.appendChild(li);
-      });
-    }
-
-    function removeCode(index) {
-      codes.splice(index, 1);
-      updateList();
-    }
-
-    function addManual() {
-      const input = document.getElementById("manualInput").value.trim();
-      if (input && !codes.includes(input)) {
-        codes.push(input);
-        document.getElementById("manualInput").value = "";
-        updateList();
-      }
-    }
-
-    function onScanSuccess(qrCodeMessage) {
-      if (!codes.includes(qrCodeMessage)) {
-        codes.push(qrCodeMessage);
-        updateList();
-        qrScanner.pause();
-        setTimeout(() => qrScanner.resume(), 1000);
-      }
-    }
-
-    function sendAll() {
-      const trasa = document.getElementById("trasa").value.trim();
-      if (!trasa || codes.length === 0) {
-        alert("Uzupełnij trasę i dodaj przynajmniej jeden kod.");
-        return;
-      }
-
-      fetch(scriptURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trasa: trasa, codes: codes })
-      })
-      .then(res => res.text())
-      .then(txt => {
-        document.getElementById("status").innerText = "✅ Wysłano dane do arkusza.";
-        codes = [];
-        updateList();
-      })
-      .catch(err => alert("Błąd: " + err));
-    }
-
-    const qrScanner = new Html5Qrcode("reader");
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    );
-  </script>
-</body>
-</html>
+  fetch(scriptURL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      trasa: trasa,
+      nrRejestracyjny: nrRejestracyjny,
+      dostawa: dostawa,
+      info: info,
+      moduly: moduly,
+      codes: codes
+    })
+  })
+  .then(res => res.text())
+  .then(txt => {
+    document.getElementById("status").innerText = "✅ Wysłano dane do arkusza.";
+    codes = [];
+    updateList();
+  })
+  .catch(err => alert("Błąd: " + err));
+}
