@@ -2,169 +2,46 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Skaner PZ Orlean</title>
+  <title>Test wysyłania danych</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 16px;
-      width: 100%;
-      max-width: 100%;
-      overflow-x: hidden;
-      font-family: sans-serif;
-      background-color: #fff;
-    }
-
-    input, select, button {
-      margin: 6px 0;
-      padding: 10px;
-      width: 100%;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-
-    #reader {
-      width: 100%;
-      max-width: 100%;
-      margin: 20px 0;
-    }
-
-    ul {
-      padding: 0;
-      list-style: none;
-    }
-
-    li {
-      border-bottom: 1px solid #ccc;
-      padding: 5px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .remove-btn {
-      color: red;
-      cursor: pointer;
-    }
-
-    h2 {
-      margin-top: 0;
-    }
+    body { font-family: sans-serif; padding: 20px; }
+    input, button { display: block; margin: 10px 0; width: 100%; padding: 10px; }
   </style>
 </head>
 <body>
+  <h2>Testowe wysyłanie danych do Google Sheets</h2>
 
-  <h2>Skaner PZ Orlean</h2>
+  <input type="text" id="trasa" placeholder="Trasa">
+  <input type="text" id="nrRejestracyjny" placeholder="Nr rejestracyjny">
+  <input type="text" id="kod" placeholder="Kod testowy">
 
-  <input type="text" id="trasa" placeholder="Nr. Trasy" required>
-  <input type="text" id="nrRejestracyjny" placeholder="Nr rejestracyjny samochodu" required>
-
-  <select id="dostawa" required>
-    <option value="">-- Rodzaj przyjęcia --</option>
-    <option value="Dostawa z Opola">Dostawa z Opola</option>
-    <option value="Rozładunek HDS">Rozładunek HDS</option>
-  </select>
-
-  <input type="text" id="info" placeholder="Uwagi dotyczące dostawy">
-  <input type="text" id="moduly" placeholder="Podaj typ i ilość modułów" required>
-
-  <div id="reader"></div>
-
-  <input type="text" id="manualInput" placeholder="Wpisz kod ręcznie">
-  <button onclick="addManual()">Dodaj do listy</button>
-
-  <h3>Lista kodów:</h3>
-  <ul id="codeList"></ul>
-
-  <button onclick="sendAll()">Wyślij wszystko do arkusza</button>
+  <button onclick="sendTest()">Wyślij dane testowe</button>
   <p id="status"></p>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw4wo0RTiIQq5cPxkZat8CW04jWmhvuFTkIXMfkTDt6oJtM5EPJATWCSdzYhKY9H8xDoQ/exec';
+    const scriptURL = 'TWÓJ_LINK_DO_SKRYPTU';
 
-    let codes = [];
-
-    function updateList() {
-      const list = document.getElementById("codeList");
-      list.innerHTML = "";
-      codes.forEach((code, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${index})">✕</span>`;
-        list.appendChild(li);
-      });
-    }
-
-    function removeCode(index) {
-      codes.splice(index, 1);
-      updateList();
-    }
-
-    function addManual() {
-      const input = document.getElementById("manualInput").value.trim();
-      if (input && !codes.includes(input)) {
-        codes.push(input);
-        document.getElementById("manualInput").value = "";
-        updateList();
-      }
-    }
-
-    function sendAll() {
-      const trasa = document.getElementById("trasa").value.trim();
-      const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
-      const dostawa = document.getElementById("dostawa").value.trim();
-      const info = document.getElementById("info").value.trim();
-      const moduly = document.getElementById("moduly").value.trim();
-
-      if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
-        alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
-        return;
-      }
+    function sendTest() {
+      const data = {
+        trasa: document.getElementById("trasa").value,
+        nrRejestracyjny: document.getElementById("nrRejestracyjny").value,
+        codes: [document.getElementById("kod").value]
+      };
 
       fetch(scriptURL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          trasa,
-          nrRejestracyjny,
-          dostawa,
-          info,
-          moduly,
-          codes
-        })
+        body: JSON.stringify(data)
       })
-      .then(response => {
-        if (!response.ok) throw new Error("Błąd sieci");
-        return response.text();
-      })
+      .then(res => res.text())
       .then(txt => {
-        document.getElementById("status").innerText = "✅ Wysłano dane do arkusza.";
-        codes = [];
-        updateList();
+        document.getElementById("status").innerText = "✅ " + txt;
       })
       .catch(err => {
-        document.getElementById("status").innerText = "❌ Błąd przy wysyłaniu.";
-        alert("Błąd: " + err.message);
+        document.getElementById("status").innerText = "❌ Błąd: " + err;
       });
     }
-
-    const qrScanner = new Html5Qrcode("reader");
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      (decodedText) => {
-        if (!codes.includes(decodedText)) {
-          codes.push(decodedText);
-          updateList();
-          qrScanner.pause();
-          setTimeout(() => qrScanner.resume(), 1000);
-        }
-      }
-    );
   </script>
 </body>
 </html>
