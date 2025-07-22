@@ -1,16 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
   <title>Lista kodów QR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-    #reader { width: 100%; margin-bottom: 20px; }
-    input, button { margin: 5px 0; padding: 8px; width: 100%; }
-    ul { list-style: none; padding: 0; }
-    li { padding: 5px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; }
-    .remove-btn { color: red; cursor: pointer; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      max-width: 100vw;
+      overflow-x: hidden;
+      font-family: sans-serif;
+      box-sizing: border-box;
+    }
+
+    body {
+      padding: 16px;
+    }
+
+    h2, h3 {
+      margin-top: 1em;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 100%;
+      margin: 20px 0;
+    }
+
+    input, button {
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1rem;
+    }
+
+    .remove-btn {
+      color: red;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
   </style>
 </head>
 <body>
@@ -28,11 +80,10 @@
   <ul id="codeList"></ul>
 
   <button onclick="sendAll()">Wyślij wszystkie do arkusza</button>
-
   <p id="status"></p>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxV10DbnjikxYh4mI7pI5457iJp60_rngnY7tsKuI-pg5enUHmPFXDBStUUHEY7D_ExNw/exec'; // <--- Zmień po utworzeniu skryptu
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxV10DbnjikxYh4mI7pI5457iJp60_rngnY7tsKuI-pg5enUHmPFXDBStUUHEY7D_ExNw/exec'; // <-- Wstaw swój prawidłowy link do Google Apps Script
 
     let codes = [];
 
@@ -65,7 +116,7 @@
         codes.push(qrCodeMessage);
         updateList();
         qrScanner.pause();
-        setTimeout(() => qrScanner.resume(), 1500); // krótkie zatrzymanie po skanie
+        setTimeout(() => qrScanner.resume(), 1000);
       }
     }
 
@@ -90,7 +141,6 @@
       .catch(err => alert("Błąd: " + err));
     }
 
-    // Inicjalizacja skanera
     const qrScanner = new Html5Qrcode("reader");
     qrScanner.start(
       { facingMode: "environment" },
