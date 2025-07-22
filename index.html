@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Lista kodów QR</title>
+  <title>Skaner PZ Orlean</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
@@ -15,17 +15,20 @@
       font-family: sans-serif;
       box-sizing: border-box;
     }
-    input, button {
+
+    input, select, button {
       margin: 6px 0;
       padding: 10px;
       width: 100%;
       font-size: 1rem;
       box-sizing: border-box;
     }
+
     #reader {
       width: 100%;
       margin: 20px 0;
     }
+
     ul { padding: 0; list-style: none; }
     li {
       border-bottom: 1px solid #ccc;
@@ -33,6 +36,7 @@
       display: flex;
       justify-content: space-between;
     }
+
     .remove-btn { color: red; cursor: pointer; }
   </style>
 </head>
@@ -40,16 +44,17 @@
 
   <h2>Skaner PZ Orlean</h2>
 
-  <input type="text" id="trasa" placeholder="Nr. Trasy">
-  <input type="text" id="nrRejestracyjny" placeholder="Nr rejestracyjny samochodu">
-<select id="dostawa">
-  <option value="">-- Wybierz rodzaj przyjęcia.--</option>
-  <option value="Dostawa z Opola">Dostawa z Opola</option>
-  <option value="Rozładunek HDS">Rozładunek HDS</option>
-</select>
+  <input type="text" id="trasa" placeholder="Nr. Trasy" required>
+  <input type="text" id="nrRejestracyjny" placeholder="Nr rejestracyjny samochodu" required>
 
-  <input type="text" id="info" placeholder="Uwagi dotyczące dostawy">
-  <input type="text" id="moduly" placeholder="Podaj typ i ilość modułów">
+  <select id="dostawa" required>
+    <option value="">-- wybierz --</option>
+    <option value="Z Opola">Z Opola</option>
+    <option value="Do Opola">Do Opola</option>
+  </select>
+
+  <input type="text" id="info" placeholder="Uwagi dotyczące dostawy"> <!-- NIE obowiązkowe -->
+  <input type="text" id="moduly" placeholder="Podaj typ i ilość modułów" required>
 
   <div id="reader"></div>
 
@@ -95,11 +100,11 @@
       const trasa = document.getElementById("trasa").value.trim();
       const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
       const dostawa = document.getElementById("dostawa").value.trim();
-      const info = document.getElementById("info").value.trim();
+      const info = document.getElementById("info").value.trim(); // nieobowiązkowe
       const moduly = document.getElementById("moduly").value.trim();
 
-      if (!trasa || !nrRejestracyjny || codes.length === 0) {
-        alert("Uzupełnij wymagane pola i dodaj przynajmniej jeden kod.");
+      if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
+        alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
         return;
       }
 
