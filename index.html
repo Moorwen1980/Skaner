@@ -112,20 +112,31 @@
       formData.append("moduly", moduly);
       formData.append("codes", JSON.stringify(codes));
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(res => res.text())
-      .then(txt => {
-        document.getElementById("status").innerText = "✅ Dane wysłane";
-        codes = [];
-        updateList();
-      })
-      .catch(err => {
-        document.getElementById("status").innerText = "❌ Błąd: " + err;
-      });
-    }
+fetch(scriptURL, {
+  method: 'POST',
+  body: formData
+})
+.then(res => res.text())
+.then(txt => {
+  document.getElementById("status").innerText = "✅ Dane wysłane";
+  codes = [];
+  updateList();
+
+  // Czyszczenie pól
+  document.getElementById("trasa").value = "";
+  document.getElementById("nrRejestracyjny").value = "";
+  document.getElementById("dostawa").value = "";
+  document.getElementById("info").value = "";
+  document.getElementById("moduly").value = "";
+
+  // Ukryj status po 3 sekundach
+  setTimeout(() => {
+    document.getElementById("status").innerText = "";
+  }, 3000);
+})
+.catch(err => {
+  document.getElementById("status").innerText = "❌ Błąd: " + err;
+});
 
     const qrScanner = new Html5Qrcode("reader");
     qrScanner.start(
