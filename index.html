@@ -1,156 +1,91 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Skaner PZ Orlean</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 16px;
-      width: 100%;
-      max-width: 500px;
-      margin: auto;
-      background-color: #222222; color: white;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      font-size: 1rem;
-    }
-    #reader { width: 100%; margin: 10px 0; }
-    ul { list-style: none; padding: 0; }
-    li {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid #ccc;
-      padding: 6px 0;
-    }
-    .remove-btn { color: red; cursor: pointer; }
-  </style>
-</head>
-<body>
+<script>
+  const scriptURL = "https://script.google.com/macros/s/AKfycb.../exec"; // <-- Twój link
+  let codes = [];
 
-  <h2 style="text-align: center;">SKANER PZ ORLEAN</h2>
+  function updateList() {
+    const list = document.getElementById("codeList");
+    list.innerHTML = "";
+    codes.forEach((code, index) => {
+      const li = document.createElement("li");
+      li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${index})">✕</span>`;
+      list.appendChild(li);
+    });
+  }
 
-  <input id="trasa" type="text" placeholder="Wpisz nr trasy" required>
-  <input id="nrRejestracyjny" type="text" placeholder="Nr rejestracyjny samochodu i naczepy" required>
+  function removeCode(index) {
+    codes.splice(index, 1);
+    updateList();
+  }
 
-  <select id="dostawa" required>
-    <option value="">-- Rodzaj przyjęcia --</option>
-    <option value="Dostawa z Opola">Dostawa z Opola</option>
-    <option value="Rozładunek HDS">Rozładunek HDS</option>
-  </select>
-
-  <input id="info" type="text" placeholder="Uwagi dotyczące dostawy">
-  <input id="moduly" type="text" placeholder="Typ i ilość modułów" required>
-
-  <div id="reader"></div>
-
-  <input id="manualInput" type="text" placeholder="Dodaj kod ręcznie">
-  <button onclick="addManual()">Dodaj do listy</button>
-
-  <h3>Lista zeskanowanych modułów:</h3>
-  <ul id="codeList"></ul>
-
-  <button onclick="sendAll()">Wyślij PZ</button>
-  <p id="status"></p>
-
-  <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbwMAsNWCGc2rbvYqoaH2eOcp6EXhMurpBUmd55h_4_BJj3QSrGbApa6LceOdcFZOCVR3A/exec";
-    let codes = [];
-
-    function updateList() {
-      const list = document.getElementById("codeList");
-      list.innerHTML = "";
-      codes.forEach((code, i) => {
-        const li = document.createElement("li");
-        li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${i})">✕</span>`;
-        list.appendChild(li);
-      });
-    }
-
-    function removeCode(index) {
-      codes.splice(index, 1);
+  function addManual() {
+    const input = document.getElementById("manualInput").value.trim();
+    if (input && !codes.includes(input)) {
+      codes.push(input);
+      document.getElementById("manualInput").value = "";
       updateList();
     }
+  }
 
-    function addManual() {
-      const input = document.getElementById("manualInput");
-      const code = input.value.trim();
-      if (code && !codes.includes(code)) {
-        codes.push(code);
-        input.value = "";
-        updateList();
-      }
+  // ✅ Właściwa funkcja wysyłania danych:
+  function sendAll() {
+    if (!confirm("Czy na pewno chcesz wysłać dane do arkusza?")) return;
+
+    const trasa = document.getElementById("trasa").value.trim();
+    const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
+    const dostawa = document.getElementById("dostawa").value.trim();
+    const info = document.getElementById("info").value.trim();
+    const moduly = document.getElementById("moduly").value.trim();
+
+    if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
+      alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
+      return;
     }
 
-    function sendAll() {
-        if (!confirm("Czy na pewno chcesz wysłać dane do arkusza?")) {
-    return;
+    const formData = new FormData();
+    formData.append("trasa", trasa);
+    formData.append("nrRejestracyjny", nrRejestracyjny);
+    formData.append("dostawa", dostawa);
+    formData.append("info", info);
+    formData.append("moduly", moduly);
+    formData.append("codes", JSON.stringify(codes));
+
+    fetch(scriptURL, {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.text())
+    .then(txt => {
+      document.getElementById("status").innerText = "✅ Dane wysłane";
+      codes = [];
+      updateList();
+
+      document.getElementById("trasa").value = "";
+      document.getElementById("nrRejestracyjny").value = "";
+      document.getElementById("dostawa").value = "";
+      document.getElementById("info").value = "";
+      document.getElementById("moduly").value = "";
+
+      setTimeout(() => {
+        document.getElementById("status").innerText = "";
+      }, 3000);
+    })
+    .catch(err => {
+      document.getElementById("status").innerText = "❌ Błąd: " + err;
+    });
   }
-      const trasa = document.getElementById("trasa").value.trim();
-      const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
-      const dostawa = document.getElementById("dostawa").value.trim();
-      const info = document.getElementById("info").value.trim();
-      const moduly = document.getElementById("moduly").value.trim();
 
-      if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
-        alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
-        return;
+  // ✅ Skaner QR
+  const qrScanner = new Html5Qrcode("reader");
+  qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    (text) => {
+      if (!codes.includes(text)) {
+        codes.push(text);
+        updateList();
+        qrScanner.pause();
+        setTimeout(() => qrScanner.resume(), 1000);
       }
-
-      const formData = new FormData();
-      formData.append("trasa", trasa);
-      formData.append("nrRejestracyjny", nrRejestracyjny);
-      formData.append("dostawa", dostawa);
-      formData.append("info", info);
-      formData.append("moduly", moduly);
-      formData.append("codes", JSON.stringify(codes));
-
-fetch(scriptURL, {
-  method: 'POST',
-  body: formData
-})
-.then(res => res.text())
-.then(txt => {
-  document.getElementById("status").innerText = "✅ Dane wysłane";
-  codes = [];
-  updateList();
-
-  // Czyszczenie pól
-  document.getElementById("trasa").value = "";
-  document.getElementById("nrRejestracyjny").value = "";
-  document.getElementById("dostawa").value = "";
-  document.getElementById("info").value = "";
-  document.getElementById("moduly").value = "";
-
-  // Ukryj status po 3 sekundach
-  setTimeout(() => {
-    document.getElementById("status").innerText = "";
-  }, 3000);
-})
-.catch(err => {
-  document.getElementById("status").innerText = "❌ Błąd: " + err;
-});
-
-    const qrScanner = new Html5Qrcode("reader");
-    qrScanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 250 },
-      (text) => {
-        if (!codes.includes(text)) {
-          codes.push(text);
-          updateList();
-          qrScanner.pause();
-          setTimeout(() => qrScanner.resume(), 1000);
-        }
-      }
-    );
-  </script>
-</body>
-</html>
+    }
+  );
+</script>
