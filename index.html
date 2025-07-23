@@ -1,91 +1,186 @@
-<script>
-  const scriptURL = "https://script.google.com/macros/s/AKfycb.../exec"; // <-- Twój link
-  let codes = [];
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Skaner PZ Orlean</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      background-color: #f2f2f2;
+      font-family: sans-serif;
+      overflow-x: hidden;
+    }
+    .form-wrapper {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      font-family: 'Lobster', cursive;
+      margin-top: 0;
+    }
+    input, select, button {
+      margin: 6px 0;
+      padding: 10px;
+      width: 100%;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #reader {
+      width: 100%;
+      margin: 16px 0;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      padding: 6px;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+    }
+    .remove-btn {
+      color: red;
+      cursor: pointer;
+    }
+    #status {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
 
-  function updateList() {
-    const list = document.getElementById("codeList");
-    list.innerHTML = "";
-    codes.forEach((code, index) => {
-      const li = document.createElement("li");
-      li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${index})">✕</span>`;
-      list.appendChild(li);
-    });
-  }
+  <div class="form-wrapper">
+    <h2>Skaner PZ Orlean</h2>
 
-  function removeCode(index) {
-    codes.splice(index, 1);
-    updateList();
-  }
+    <input type="text" id="trasa" placeholder="Nr trasy" required>
+    <input type="text" id="nrRejestracyjny" placeholder="Nr rejestracyjny" required>
+    
+    <select id="dostawa" required>
+      <option value="">-- Rodzaj przyjęcia --</option>
+      <option value="Dostawa z Opola">Dostawa z Opola</option>
+      <option value="Rozładunek HDS">Rozładunek HDS</option>
+    </select>
+    
+    <input type="text" id="info" placeholder="Uwagi dotyczące dostawy">
+    <input type="text" id="moduly" placeholder="Typ i ilość modułów" required>
 
-  function addManual() {
-    const input = document.getElementById("manualInput").value.trim();
-    if (input && !codes.includes(input)) {
-      codes.push(input);
-      document.getElementById("manualInput").value = "";
+    <div id="reader"></div>
+
+    <input type="text" id="manualInput" placeholder="Dodaj kod ręcznie">
+    <button onclick="addManual()">Dodaj do listy</button>
+
+    <h3>Lista modułów:</h3>
+    <ul id="codeList"></ul>
+
+    <button onclick="sendAll()">Wyślij PZ</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // <-- Wstaw swój URL
+    let codes = [];
+
+    function updateList() {
+      const list = document.getElementById("codeList");
+      list.innerHTML = "";
+      codes.forEach((code, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `${code} <span class="remove-btn" onclick="removeCode(${index})">✕</span>`;
+        list.appendChild(li);
+      });
+    }
+
+    function removeCode(index) {
+      codes.splice(index, 1);
       updateList();
     }
-  }
 
-  // ✅ Właściwa funkcja wysyłania danych:
-  function sendAll() {
-    if (!confirm("Czy na pewno chcesz wysłać dane do arkusza?")) return;
-
-    const trasa = document.getElementById("trasa").value.trim();
-    const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
-    const dostawa = document.getElementById("dostawa").value.trim();
-    const info = document.getElementById("info").value.trim();
-    const moduly = document.getElementById("moduly").value.trim();
-
-    if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
-      alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("trasa", trasa);
-    formData.append("nrRejestracyjny", nrRejestracyjny);
-    formData.append("dostawa", dostawa);
-    formData.append("info", info);
-    formData.append("moduly", moduly);
-    formData.append("codes", JSON.stringify(codes));
-
-    fetch(scriptURL, {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.text())
-    .then(txt => {
-      document.getElementById("status").innerText = "✅ Dane wysłane";
-      codes = [];
-      updateList();
-
-      document.getElementById("trasa").value = "";
-      document.getElementById("nrRejestracyjny").value = "";
-      document.getElementById("dostawa").value = "";
-      document.getElementById("info").value = "";
-      document.getElementById("moduly").value = "";
-
-      setTimeout(() => {
-        document.getElementById("status").innerText = "";
-      }, 3000);
-    })
-    .catch(err => {
-      document.getElementById("status").innerText = "❌ Błąd: " + err;
-    });
-  }
-
-  // ✅ Skaner QR
-  const qrScanner = new Html5Qrcode("reader");
-  qrScanner.start(
-    { facingMode: "environment" },
-    { fps: 10, qrbox: 250 },
-    (text) => {
-      if (!codes.includes(text)) {
-        codes.push(text);
+    function addManual() {
+      const input = document.getElementById("manualInput").value.trim();
+      if (input && !codes.includes(input)) {
+        codes.push(input);
+        document.getElementById("manualInput").value = "";
         updateList();
-        qrScanner.pause();
-        setTimeout(() => qrScanner.resume(), 1000);
       }
     }
-  );
-</script>
+
+    function sendAll() {
+      if (!confirm("Czy na pewno chcesz wysłać dane?")) return;
+
+      const trasa = document.getElementById("trasa").value.trim();
+      const nrRejestracyjny = document.getElementById("nrRejestracyjny").value.trim();
+      const dostawa = document.getElementById("dostawa").value.trim();
+      const info = document.getElementById("info").value.trim();
+      const moduly = document.getElementById("moduly").value.trim();
+
+      if (!trasa || !nrRejestracyjny || !dostawa || !moduly || codes.length === 0) {
+        alert("Uzupełnij wszystkie wymagane pola i dodaj przynajmniej jeden kod.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("trasa", trasa);
+      formData.append("nrRejestracyjny", nrRejestracyjny);
+      formData.append("dostawa", dostawa);
+      formData.append("info", info);
+      formData.append("moduly", moduly);
+      formData.append("codes", JSON.stringify(codes));
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.text())
+      .then(txt => {
+        document.getElementById("status").innerText = "✅ Dane wysłane";
+        codes = [];
+        updateList();
+
+        document.getElementById("trasa").value = "";
+        document.getElementById("nrRejestracyjny").value = "";
+        document.getElementById("dostawa").value = "";
+        document.getElementById("info").value = "";
+        document.getElementById("moduly").value = "";
+
+        setTimeout(() => {
+          document.getElementById("status").innerText = "";
+        }, 3000);
+      })
+      .catch(err => {
+        document.getElementById("status").innerText = "❌ Błąd: " + err;
+      });
+    }
+
+    const qrScanner = new Html5Qrcode("reader");
+    qrScanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      (text) => {
+        if (!codes.includes(text)) {
+          codes.push(text);
+          updateList();
+          qrScanner.pause();
+          setTimeout(() => qrScanner.resume(), 1000);
+        }
+      }
+    );
+  </script>
+
+</body>
+</html>
